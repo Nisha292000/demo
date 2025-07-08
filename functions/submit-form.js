@@ -18,18 +18,24 @@ exports.handler = async (event) => {
     };
   }
 
-  // ✅ Send Email
+  // Hardcoded credentials (replace with your actual data)
+  const EMAIL_USER="nt200029@gmail.com"
+  const EMAIL_PASS="vxxv kteb vcfb iaux"
+  const RECEIVER_EMAIL="nt200029@gmail.com"
+  const MONGO_URI = "mongodb+srv://sumit:VTZZ7KT6T4ws5Vdv@cluster0.mztgyow.mongodb.net/"
+
+  // Send Email
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: EMAIL_USER,
+      pass: EMAIL_PASS,
     },
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: process.env.RECEIVER_EMAIL,
+    from: EMAIL_USER,
+    to: RECEIVER_EMAIL,
     subject: "New Contact Form Submission",
     text: `
       Name: ${name}
@@ -40,9 +46,8 @@ exports.handler = async (event) => {
     `,
   };
 
-  // ✅ MongoDB Save
-  const uri = process.env.MONGO_URI;
-  const client = new MongoClient(uri, {
+  // MongoDB Save
+  const client = new MongoClient(MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
@@ -51,7 +56,7 @@ exports.handler = async (event) => {
     await transporter.sendMail(mailOptions);
 
     await client.connect();
-    const db = client.db("leads"); // You can name the DB
+    const db = client.db("leads"); // Database name
     const collection = db.collection("mail_submissions");
 
     await collection.insertOne({
