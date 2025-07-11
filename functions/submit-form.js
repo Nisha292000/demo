@@ -1,5 +1,16 @@
+const { Pool } = require("pg");
 const nodemailer = require("nodemailer");
-const { MongoClient } = require("mongodb");
+
+// ✅ Hardcoded DB connection string
+const pool = new Pool({
+  connectionString: "postgresql://neondb_owner:npg_AmxqwB1UgCf9@ep-holy-lab-aek137qt-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require",
+  ssl: { rejectUnauthorized: false },
+});
+
+// ✅ Hardcoded Email Credentials
+const EMAIL_USER = "nt200029@gmail.com";
+const EMAIL_PASS = "vxxv kteb vcfb iaux";
+const RECEIVER_EMAIL = "nt200029@gmail.com";
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -18,13 +29,7 @@ exports.handler = async (event) => {
     };
   }
 
-  // Hardcoded credentials (replace with your actual data)
-  const EMAIL_USER="nt200029@gmail.com"
-  const EMAIL_PASS="vxxv kteb vcfb iaux"
-  const RECEIVER_EMAIL="nt200029@gmail.com"
-  const MONGO_URI = "mongodb+srv://sumit:VTZZ7KT6T4ws5Vdv@cluster0.mztgyow.mongodb.net/"
-
-  // Send Email
+  // ✅ Setup nodemailer transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -46,39 +51,33 @@ exports.handler = async (event) => {
     `,
   };
 
-  // MongoDB Save
-  const client = new MongoClient(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
   try {
+    // 1️⃣ Send the email
     await transporter.sendMail(mailOptions);
 
-    await client.connect();
-    const db = client.db("leads"); // Database name
-    const collection = db.collection("mail_submissions");
+    // 2️⃣ Save to PostgreSQL
+    const client = await pool.connect();
 
-    await collection.insertOne({
-      name,
-      email,
-      phone,
-      services,
-      message,
-      createdAt: new Date(),
-    });
+    const result = await client.query(
+      `INSERT INTO contact_submissions (name, email, phone, services, message)
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [name, email, phone, services, message]
+    );
+
+    client.release();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Message sent and saved!" }),
+      body: JSON.stringify({
+        message: "Form submitted and saved to database!",
+        submissionId: result.rows[0].id,
+      }),
     };
-  } catch (error) {
-    console.error("Error:", error);
+  } catch (err) {
+    console.error("Error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: "Failed to process form." }),
+      body: JSON.stringify({ message: "Server error." }),
     };
-  } finally {
-    await client.close();
   }
 };

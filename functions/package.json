@@ -10,6 +10,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "nodemailer": "^7.0.5"
+    "@neondatabase/serverless": "^0.10.4",
+    "@netlify/functions": "^2.0.0",
+    "nodemailer": "^7.0.5",
+    "pg": "^8.16.3"
   }
 }

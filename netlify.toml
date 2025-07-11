@@ -1,3 +1,17 @@
 [build]
   functions = "functions"
   publish = "public"
+
+[functions]
+  node_bundler = "esbuild"
+
+[functions."submit-form"]
+  included_files = ["netlify/database/migrations/*"]
+
+[context.production.environment]
+  EMAIL_USER = "nt200029@gmail.com"
+  RECEIVER_EMAIL = "nt200029@gmail.com"
+
+[context.deploy-preview.environment]
+  EMAIL_USER = "nt200029@gmail.com"
+  RECEIVER_EMAIL = "nt200029@gmail.com"
